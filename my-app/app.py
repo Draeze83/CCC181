@@ -9,7 +9,21 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 # Sample data for the demo. A real app would load this from a database later.
-TICKETS = [12, 13, 14]
+TICKETS = [
+    {"number": 1, "name": "Kurt", "email": "kurt@school.edu", "service_id": 1, "status": "waiting"},
+    {"number": 2, "name": "Raven", "email": "raven@school.edu", "service_id": 2, "status": "waiting"},
+    {"number": 3, "name": "Winchester", "email": "winchester@school.edu", "service_id": 3, "status": "waiting"},
+    {"number": 4, "name": "James", "email": "james@school.edu", "service_id": 4, "status": "waiting"}
+]
+
+SERVICES = [
+    {"id": 1, "name": "Enrollment"},
+    {"id": 2, "name": "Document Requests"},
+    {"id": 3, "name": "Payments and Fees"},
+    {"id": 4, "name": "Student Records"},
+    {"id": 5, "name": "Registration"},
+    {"id": 6, "name": "Clearance Verification"}
+]
 
 
 @app.route("/")
