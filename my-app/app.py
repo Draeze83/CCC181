@@ -92,9 +92,25 @@ def join():
     flash(f"You joined the queue. Your ticket is #{number}.", "success")
     return redirect(url_for("ticket", ticket_id=number))
 
-@app.route("/staff")
+@app.get("/staff")
 def staff_dashboard():
-    return "Staff dashboard coming soon"
+    service_id = request.args.get("service_id", type=int)
+    queue = [t for t in TICKETS if t["status"] in ("waiting", "called")]
+    if service_id:
+        queue = [t for t in queue if t["service_id"] == service_id]
+    names = {s["id"]: s["name"] for s in SERVICES}
+    return render_template("staff.html", queue=queue, services=SERVICES,
+                           names=names, selected=service_id)
+
+@app.post("/staff/tickets/<int:ticket_id>/<action>")
+def staff_action(ticket_id, action):
+    new_status = {"call": "called", "serve": "served", "no-show": "no-show"}.get(action)
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None or new_status is None:
+        abort(404)
+    t["status"] = new_status
+    flash(f"Ticket #{ticket_id} marked {new_status}.", "info")
+    return redirect(url_for("staff_dashboard"))
 
 @app.route("/hello")
 def hello():
