@@ -62,3 +62,21 @@
 </div>
 {% endblock %}
 
+
+{% block scripts %}
+<script>
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  async function refreshStatus() {
+    try {
+      const res = await fetch(statusUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+      // Update the badge text and the "people ahead" sentence here,
+      // using the ids you gave them in Part 6.
+    } catch (err) {
+      console.warn("Could not refresh status", err);
+    }
+  }
+  setInterval(refreshStatus, 10000);
+</script>
+{% endblock %}
