@@ -5,6 +5,7 @@ Run it with:
 then open http://127.0.0.1:5000
 """
 
+import re
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 
 app = Flask(__name__)
