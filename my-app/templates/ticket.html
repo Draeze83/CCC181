@@ -21,10 +21,10 @@
           } %}
           <p class="mb-2">
             Status:
-            <span class="badge {{ badge.get(ticket.status, 'text-bg-light') }} fs-6">{{ ticket.status|capitalize }}</span>
+            <span id="status-badge" class="badge {{ badge.get(ticket.status, 'text-bg-light') }} fs-6">{{ ticket.status|capitalize }}</span>
           </p>
 
-          <p class="lead mb-0">
+          <p id="status-message" class="lead mb-0">
             {% if ticket.status == "waiting" %}
               {% if ahead == 0 %}
                 You're next!
@@ -62,17 +62,29 @@
 </div>
 {% endblock %}
 
-
 {% block scripts %}
 <script>
   const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+
+  function statusMessage(data) {
+    if (data.status === "waiting") {
+      if (data.ahead === 0) return "You're next!";
+      if (data.ahead === 1) return "1 person ahead of you";
+      return data.ahead + " people ahead of you";
+    }
+    if (data.status === "called") return "You've been called. Please go to the counter.";
+    if (data.status === "served") return "Your transaction is complete.";
+    return "You are no longer in the queue.";
+  }
+
   async function refreshStatus() {
     try {
       const res = await fetch(statusUrl);
       if (!res.ok) return;
       const data = await res.json();
-      // Update the badge text and the "people ahead" sentence here,
-      // using the ids you gave them in Part 6.
+      document.getElementById("status-badge").textContent =
+        data.status.charAt(0).toUpperCase() + data.status.slice(1);
+      document.getElementById("status-message").textContent = statusMessage(data);
     } catch (err) {
       console.warn("Could not refresh status", err);
     }
