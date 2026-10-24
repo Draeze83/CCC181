@@ -32,10 +32,27 @@ def index():
     # keyword arguments to the template as variables.
     return render_template("index.html")
 
-@app.route("/queue/<int:ticket_id>")
+@app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):
-    # <int:ticket_id> only matches numbers, so /queue/abc returns 404.
-    return render_template("ticket.html", ticket_id=ticket_id)
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    ahead = [x for x in TICKETS
+             if x["service_id"] == t["service_id"]
+             and x["status"] == "waiting"
+             and x["number"] < t["number"]]
+    service = next(s for s in SERVICES if s["id"] == t["service_id"])
+    return render_template("ticket.html", ticket=t, service=service, ahead=len(ahead))
+
+@app.post("/queue/<int:ticket_id>/leave")
+def leave(ticket_id):
+    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
+    if t is None:
+        abort(404)
+    t["status"] = "no-show"
+    flash(f"You left the queue. Ticket #{t['number']} has been cancelled.", "info")
+    return redirect(url_for("index"))
+
 
 @app.route("/join")
 def join_form():

@@ -1,9 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket_id }} · Qonnect{% endblock %}
+{% block title %}Ticket #{{ ticket.number }} · Qonnect{% endblock %}
 
 {% block content %}
-  <h2>Ticket #{{ ticket_id }}</h2>
-  <p>This page was built from the URL <code>/queue/{{ ticket_id }}</code>.</p>
-  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-body-secondary mb-1">Your ticket number</p>
+        <p class="display-1 fw-bold mb-2">#{{ ticket.number }}</p>
+        <p class="h5 mb-3">{{ service.name }}</p>
+
+        <div id="live-status" aria-live="polite">
+          {% set badge = {
+            "waiting": "text-bg-warning",
+            "called": "text-bg-primary",
+            "served": "text-bg-success",
+            "no-show": "text-bg-secondary"
+          } %}
+          <p class="mb-2">
+            Status:
+            <span class="badge {{ badge.get(ticket.status, 'text-bg-light') }} fs-6">{{ ticket.status|capitalize }}</span>
+          </p>
+
+          <p class="lead mb-0">
+            {% if ticket.status == "waiting" %}
+              {% if ahead == 0 %}
+                You're next!
+              {% elif ahead == 1 %}
+                1 person ahead of you
+              {% else %}
+                {{ ahead }} people ahead of you
+              {% endif %}
+            {% elif ticket.status == "called" %}
+              You've been called. Please go to the counter.
+            {% elif ticket.status == "served" %}
+              Your transaction is complete.
+            {% else %}
+              You are no longer in the queue.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+        <p class="text-body-secondary small mt-3 mb-2">
+          Next: go to the counter when your ticket is called.
+        </p>
+        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('ticket', ticket_id=ticket.number) }}">Refresh status</a>
+
+
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('index') }}">&larr; Home</a>
+        {% if ticket.status in ["waiting", "called"] %}
+          <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Leave the queue</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
+
