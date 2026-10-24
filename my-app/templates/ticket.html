@@ -46,14 +46,14 @@
         <p class="text-body-secondary small mt-3 mb-2">
           Next: go to the counter when your ticket is called.
         </p>
-        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('ticket', ticket_id=ticket.number) }}">Refresh status</a>
+        <a class="btn btn-outline-primary py-2" href="{{ url_for('ticket', ticket_id=ticket.number) }}">Refresh status</a>
       </div>
 
       <div class="card-footer d-flex justify-content-between align-items-center">
         <a href="{{ url_for('index') }}">&larr; Home</a>
         {% if ticket.status in ["waiting", "called"] %}
           <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}">
-            <button type="submit" class="btn btn-outline-danger btn-sm">Leave the queue</button>
+            <button type="submit" class="btn btn-outline-danger py-2">Leave the queue</button>
           </form>
         {% endif %}
       </div>

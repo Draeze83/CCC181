@@ -66,12 +66,12 @@
               <div class="d-flex gap-2">
                 <form method="post"
                       action="{{ url_for('staff_action', ticket_id=t.number, action='serve') }}">
-                  <button type="submit" class="btn btn-sm btn-success"
+                  <button type="submit" class="btn py-2 btn-success"
                           aria-label="Mark ticket {{ t.number }} as served">Serve</button>
                 </form>
                 <form method="post"
                       action="{{ url_for('staff_action', ticket_id=t.number, action='no-show') }}">
-                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                  <button type="submit" class="btn py-2 btn-outline-danger"
                           aria-label="Mark ticket {{ t.number }} as no-show">No-show</button>
                 </form>
               </div>

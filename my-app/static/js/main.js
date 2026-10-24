@@ -9,3 +9,6 @@ if (joinForm) {
     button.textContent = "Getting your ticket…";
   });
 }
+
+const firstInvalid = document.querySelector(".is-invalid");
+if (firstInvalid) firstInvalid.focus();
