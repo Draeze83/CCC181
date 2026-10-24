@@ -64,6 +64,9 @@ def join():
     name = form.get("name", "").strip()
     email = form.get("email", "").strip().lower()
     service_id = form.get("service_id", type=int)
+    student_id = form.get("student_id", "").strip()
+    has_documents = form.get("has_documents") == "on"
+
 
     errors = {}
     if not name:
@@ -72,6 +75,10 @@ def join():
         errors["email"] = "Enter a valid email address."
     if service_id not in [s["id"] for s in SERVICES]:
         errors["service_id"] = "Choose a service."
+    if not re.fullmatch(r"\d{4}-?\d{4}", student_id):
+        errors["student_id"] = "Enter your 8-digit student ID, for example 2024-0013."
+    if not has_documents:
+        errors["has_documents"] = "Confirm you have the required documents before joining."
 
     if errors:
         flash("Please fix the highlighted fields.", "danger")
@@ -79,7 +86,8 @@ def join():
 
     number = TICKETS[-1]["number"] + 1 if TICKETS else 1
     TICKETS.append({"number": number, "name": name, "email": email,
-                    "service_id": service_id, "status": "waiting"})
+                    "service_id": service_id, "status": "waiting",
+                    "student_id": student_id})
     flash(f"You joined the queue. Your ticket is #{number}.", "success")
     return redirect(url_for("ticket", ticket_id=number))
 
