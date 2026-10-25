@@ -68,17 +68,56 @@ flask --app app run --debug
 ## Project structure
 
 ```
-my-app/
-├── app.py              # routes, sample tickets and services
-├── requirements.txt    # Python packages
-├── templates/          # Jinja2 pages
-│   ├── base.html       # shared layout and navigation
-│   ├── index.html      # home page
-│   ├── join.html       # join-the-queue form
-│   ├── ticket.html     # My ticket page
-│   └── staff.html      # staff dashboard
-├── static/
-│   ├── css/style.css
-│   └── js/main.js
-└── docs/               # proposal, personas, wireframes, report
+Qonnect-Python-Flask-App-/
+└── my-app/
+    ├── app.py                      # Flask app: routes, sample tickets and services
+    ├── requirements.txt            # Python packages to install
+    ├── README.md                   # this file
+    ├── .gitignore                  # keeps .venv and caches out of Git
+    ├── templates/                  # Jinja2 pages
+    │   ├── base.html               # shared layout, navigation bar and footer
+    │   ├── index.html              # home page
+    │   ├── join.html               # join-the-queue form
+    │   ├── ticket.html             # My ticket page (auto-refreshing status)
+    │   └── staff.html              # staff dashboard
+    ├── static/
+    │   ├── css/
+    │   │   └── style.css           # custom styles
+    │   └── js/
+    │       └── main.js             # form focus and submit behavior
+    └── docs/
+        ├── week1/
+        │   └── proposal.txt        # project proposal
+        └── week3/
+            ├── report.md           # Week 3 report
+            ├── personas.md         # student and staff personas
+            ├── feedback.md         # wireframe self-review
+            ├── accessibility.md    # Lighthouse and keyboard checks
+            ├── usability-test.md   # usability test notes
+            ├── wireframes/
+            │   ├── wireframes_before.png    # first wireframes
+            │   ├── wireframes-revised.png   # revised wireframe sheet
+            │   ├── join-phone.png
+            │   ├── join-laptop.png
+            │   ├── ticket-phone.png
+            │   ├── ticket-laptop.png
+            │   ├── staff-phone.png
+            │   └── staff-laptop.png
+            └── screenshots/
+                ├── aira-villanueva.jpg        # persona image
+                ├── ramon-dela-cruz.jpg        # persona image
+                ├── join-phone.png             # app screenshots, phone and laptop
+                ├── join-laptop.png
+                ├── ticket-phone.png
+                ├── ticket-laptop.png
+                ├── staff-phone.png
+                ├── staff-laptop.png
+                ├── join-demo.jpg              # demo photos
+                ├── join-form-demo.jpg
+                ├── my-ticket-demo.jpg
+                ├── staff-dashboard-demo.jpg
+                ├── homepage.png               # Lighthouse results
+                ├── join_form.png
+                ├── ticket.png
+                └── staff-dashboard.png
 ```
