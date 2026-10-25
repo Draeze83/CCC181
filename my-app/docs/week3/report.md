@@ -10,7 +10,7 @@
 | **Student ID** | 2024-0013 |
 | **Section** | CS3 |
 | **Date** | October 25, 2026 |
-| **Pull request** |  |
+| **Pull request** | https://github.com/Draeze83/Qonnect-Python-Flask-App-/pull/4#issue-6021756599 |
 
 ## Personas
 
