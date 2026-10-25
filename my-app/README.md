@@ -1,134 +1,84 @@
-# Qonnect: Hello, Flask
+# Qonnect
 
-Starter Flask app for **CCC181 Week 2: Git, GitHub & Flask Foundations**.
-It shows the project structure, routes, templates and static files from the slides.
+Qonnect is a web app for queueing at the **MSU-IIT Registrar and Cashier offices**. Students choose a service, get a queue ticket on their phone or laptop, and see how many people are ahead of them without standing in line. Office staff use a dashboard to call the next ticket and mark tickets as served or no-show.
+
+Built with Python, Flask and Bootstrap 5 for **CCC181**.
+
+## Setting
+
+| | |
+| --- | --- |
+| **Where** | MSU-IIT Registrar and Cashier offices |
+| **Who waits** | Students, mostly using a phone browser between classes |
+| **Who serves** | Office staff at a service counter, using a desktop computer |
+| **Services** | Enrollment, Document Requests, Payments and Fees, Student Records, Registration, Clearance Verification |
+
+## Pages
+
+| URL | Page | Who uses it |
+| --- | --- | --- |
+| `/` | Home | Students |
+| `/join` | Join the queue: choose a service and get a ticket | Students |
+| `/queue/<ticket_id>` | My ticket: number, status, people ahead, estimated wait (refreshes every 10 seconds) | Students |
+| `/staff` | Staff dashboard: filter by service, call next, mark served or no-show | Staff |
+
+## How to run it
+
+You need [Python 3](https://www.python.org/downloads/) and Git.
+
+**1. Get the code**
+
+```bash
+git clone https://github.com/Draeze83/Qonnect-Python-Flask-App-.git
+cd Qonnect-Python-Flask-App-
+```
+
+**2. Create and activate a virtual environment** (create it once; activate it in every new terminal)
+
+```bash
+python -m venv .venv
+
+.venv\Scripts\activate          # Windows
+source .venv/bin/activate       # macOS/Linux
+```
+
+Your prompt shows `(.venv)` when it is active. If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt.
+
+**3. Install the packages**
+
+```bash
+pip install -r my-app/requirements.txt
+```
+
+**4. Start the app from inside the `my-app` folder**
+
+```bash
+cd my-app
+flask --app app run --debug
+```
+
+**5. Open http://127.0.0.1:5000 in your browser.**
+
+## Things to know
+
+- **Run it from `my-app`.** If you see `Error: Could not import 'app'`, you are in the wrong folder. `cd my-app` and try again.
+- **Tickets reset when the server restarts.** Tickets are kept in memory for now, so saving `app.py` (which restarts the server in debug mode) brings back the four sample tickets. A ticket page you had open will then show "Not Found". Get a new ticket from `/join`. Tickets move to a database in Week 4.
+- **Debug mode is for development only.** Do not use `--debug` on a public server.
 
 ## Project structure
 
 ```
 my-app/
-├── app.py              # creates the app and defines routes
-├── requirements.txt    # packages to rebuild the environment
-├── .gitignore          # keeps .venv, caches and secrets out of Git
-├── .venv/              # your virtual environment (not committed)
-├── templates/          # Jinja2 HTML files for render_template()
-│   ├── base.html       # shared layout
+├── app.py              # routes, sample tickets and services
+├── requirements.txt    # Python packages
+├── templates/          # Jinja2 pages
+│   ├── base.html       # shared layout and navigation
 │   ├── index.html      # home page
-│   └── ticket.html     # page for /queue/<ticket_id>
-└── static/             # served at /static/...
-    ├── css/style.css
-    └── js/main.js
+│   ├── join.html       # join-the-queue form
+│   ├── ticket.html     # My ticket page
+│   └── staff.html      # staff dashboard
+├── static/
+│   ├── css/style.css
+│   └── js/main.js
+└── docs/               # proposal, personas, wireframes, report
 ```
-
-## Routes
-
-| URL | View function | What you see |
-|---|---|---|
-| `/` | `index()` | "Hello, Ana!" and a list of tickets, rendered with `index.html` |
-| `/queue/<int:ticket_id>` | `ticket()` | A page for that ticket, e.g. `/queue/12` |
-| `/hello` | `hello()` | The plain text "Hello, CCC181!" |
-
-Try `/queue/abc`: the `int` converter only accepts numbers, so Flask returns 404.
-
-## 1. Set up the Python environment
-
-```bash
-# create (once per project)
-python -m venv .venv
-
-# activate (every new terminal)
-.venv\Scripts\activate          # Windows
-source .venv/bin/activate       # macOS/Linux
-
-# install the packages
-pip install -r requirements.txt
-```
-
-Your prompt shows `(.venv)` when the environment is active. Some systems use `python3` or `py` instead of `python`.
-If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt.
-
-If you add more packages later, record them with:
-
-```bash
-pip freeze > requirements.txt
-```
-
-## 2. Run the app
-
-```bash
-flask --app app run --debug
-```
-
-Open http://127.0.0.1:5000. With `--debug`, the server reloads every time you save a file. Never use debug mode in production.
-
-## 3. Put it on GitHub
-
-### Once per computer
-
-```bash
-git config --global user.name "Your Name"
-git config --global user.email you@g.msuiit.edu.ph   # same email as your GitHub account
-git config --list
-```
-
-### Create the local repository and first commit
-
-```bash
-git init
-git branch -M main
-git status              # .venv should NOT appear, thanks to .gitignore
-git add .
-git commit -m "Add Flask starter app"
-```
-
-### Connect to GitHub and push
-
-1. On GitHub, create a new **empty** repository (no README, no .gitignore).
-2. Copy its URL, then:
-
-```bash
-git remote add origin <repo-url>
-git push -u origin main
-```
-
-GitHub does not accept your account password for Git over HTTPS. Sign in through Git Credential Manager or the GitHub CLI, or use a personal access token or SSH key.
-
-### Everyday loop
-
-```bash
-git pull origin main     # before you start working
-git status
-git add <file>
-git commit -m "Add join-queue form"
-git push origin main     # when you have commits to share
-```
-
-## 4. Lab: ship it through a pull request
-
-1. On GitHub, open an issue: **"Set up Flask starter app"**.
-2. Pull the latest `main`, then create a branch:
-   ```bash
-   git switch main
-   git pull origin main
-   git switch -c feature/flask-setup
-   ```
-3. Create `.venv`, install Flask, write `requirements.txt` and `.gitignore`.
-4. Build `app.py` with a home route and one dynamic route, rendered with `base.html` and `index.html`.
-5. Commit in small steps, then push the branch:
-   ```bash
-   git push -u origin feature/flask-setup
-   ```
-6. On GitHub, click **Compare & pull request** and write `Closes #N` in the description (N is your issue number). Merge it, then:
-   ```bash
-   git switch main
-   git pull origin main
-   ```
-
-**Early finishers:** add another static CSS rule linked with `url_for`, or a third route based on one Must feature from your project milestone.
-
-## Commit message tips
-
-- Short summary in the imperative: "Add...", "Fix..."
-- One logical change per commit
-- Commit early and often
-- Good: "Add join-queue form". Unhelpful: "update", "asdf", "final na talaga".

@@ -4,7 +4,7 @@
 
 | | |
 | --- | --- |
-| **Photo or sketch** | [A drawing, an icon, or a free stock photo. Never a photo of the real person you interviewed.] |
+| **Photo or sketch** | ![Persona image](screenshots/aira-villanueva.jpg) |
 | **Age, role and background** | 20, 2nd-year MSU-IIT student. She balances academic requirements with classes and needs to visit university offices for student services. |
 | **Goals** | 1. Complete the correct registrar or cashier transaction in one visit. 2. Know her queue position and when she should return to the counter. 3. Avoid missing class or having to come back because she lacks a requirement. |
 | **Frustrations** | 1. Long, slow, crowded lines at the IIT cashier and Registrar. 2. Waiting in person without a clear way to know when her turn will come (there is only one line in the cashier). 3. Risking a missed class or deadline, or making another trip when a requirement is missing. |
@@ -37,7 +37,7 @@ Aira arrives on campus to request an academic document before her next class. Th
 
 | | |
 | --- | --- |
-| **Photo or sketch** | [A drawing, an icon, or a free stock photo. Never a photo of the real person you interviewed.] |
+| **Photo or sketch** | ![Persona image](screenshots/ramon-dela-cruz.jpg) |
 | **Age, role and background** | 38, university office employee who handles a service counter for Registrar or Cashier transactions. |
 | **Goals** | 1. Process students in a clear, consistent queue order. 2. Know which ticket is next and update each ticket correctly. 3. Help students understand where to go and what step to take next. |
 | **Frustrations** | 1. Keeping track of the current queue while also handling transactions. 2. Repeating explanations about service types or requirements. 3. Confusion when a ticket holder is absent or a ticket status is not updated. |
