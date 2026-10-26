@@ -1,9 +1,131 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket_id }} · Qonnect{% endblock %}
+{% block title %}Ticket #{{ ticket.number }} · Qonnect{% endblock %}
 
 {% block content %}
-  <h2>Ticket #{{ ticket_id }}</h2>
-  <p>This page was built from the URL <code>/queue/{{ ticket_id }}</code>.</p>
-  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+<h1 class="h3 mb-3 text-center">My ticket</h1>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body text-center">
+        <p class="text-body-secondary mb-1">Your ticket number</p>
+        <p class="display-1 fw-bold mb-2">#{{ ticket.number }}</p>
+        <p class="h5 mb-3">{{ service.name }}</p>
+
+        <div id="live-status" aria-live="polite">
+          {% set badge = {
+            "waiting": "text-bg-warning",
+            "called": "text-bg-primary",
+            "served": "text-bg-success",
+            "no-show": "text-bg-secondary"
+          } %}
+          <p class="mb-2">
+            Status:
+            <span id="status-badge" class="badge {{ badge.get(ticket.status, 'text-bg-light') }} fs-6">{{ ticket.status|capitalize }}</span>
+          </p>
+
+          <p id="status-message" class="lead mb-0">
+            {% if ticket.status == "waiting" %}
+              {% if ahead == 0 %}
+                You're next!
+              {% elif ahead == 1 %}
+                1 person ahead of you
+              {% else %}
+                {{ ahead }} people ahead of you
+              {% endif %}
+            {% elif ticket.status == "called" %}
+              You've been called. Please go to the counter.
+            {% elif ticket.status == "served" %}
+              Your transaction is complete.
+            {% else %}
+              You are no longer in the queue.
+            {% endif %}
+          </p>
+
+          <p id="wait-estimate" class="mt-2 mb-0" {% if ticket.status != "waiting" %}hidden{% endif %}>
+            Estimated wait: <strong id="wait-text">{{ wait_text }}</strong><br>
+            <span class="small text-body-secondary">This is only an estimate and may change.</span>
+          </p>
+        </div>
+
+        <p class="text-body-secondary small mt-3 mb-2">
+          Updates automatically every 10 seconds.<br>
+          Last updated: <span id="last-updated">when this page loaded</span>
+        </p>
+
+        <p class="text-body-secondary small mb-2">
+          Next: go to the counter when your ticket is called.
+        </p>
+        <a class="btn btn-outline-primary py-2" href="{{ url_for('ticket', ticket_id=ticket.number) }}">Refresh status</a>
+      </div>
+
+      <div class="card-footer d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('index') }}">&larr; Home</a>
+        {% if ticket.status in ["waiting", "called"] %}
+          <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}">
+            <button type="submit" class="btn btn-outline-danger py-2">Leave the queue</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const badgeClasses = {
+    "waiting": "text-bg-warning",
+    "called": "text-bg-primary",
+    "served": "text-bg-success",
+    "no-show": "text-bg-secondary"
+  };
+    let last = { status: "{{ ticket.status }}", ahead: Number("{{ ahead }}") };
+
+  function statusMessage(data) {
+    if (data.status === "waiting") {
+      if (data.ahead === 0) return "You're next!";
+      if (data.ahead === 1) return "1 person ahead of you";
+      return data.ahead + " people ahead of you";
+    }
+    if (data.status === "called") return "You've been called. Please go to the counter.";
+    if (data.status === "served") return "Your transaction is complete.";
+    return "You are no longer in the queue.";
+  }
+
+  function showLastUpdated() {
+    document.getElementById("last-updated").textContent =
+      new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+  }
+
+  async function refreshStatus() {
+    try {
+      const res = await fetch(statusUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Only update the live region when something changed, so screen
+      // readers don't re-announce the same status every 10 seconds.
+      if (data.status !== last.status || data.ahead !== last.ahead) {
+        const badge = document.getElementById("status-badge");
+        badge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+        badge.className = "badge fs-6 " + (badgeClasses[data.status] || "text-bg-light");
+        document.getElementById("status-message").textContent = statusMessage(data);
+        document.getElementById("wait-text").textContent = data.wait_text;
+        document.getElementById("wait-estimate").hidden = data.status !== "waiting";
+        last = data;
+      }
+      showLastUpdated();
+
+      // Stop checking once the ticket is finished.
+      if (data.status === "served" || data.status === "no-show") clearInterval(timer);
+    } catch (err) {
+      console.warn("Could not refresh status", err);
+    }
+  }
+
+  showLastUpdated();
+  const timer = setInterval(refreshStatus, 10000);
+</script>
 {% endblock %}

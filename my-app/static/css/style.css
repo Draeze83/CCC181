@@ -49,3 +49,22 @@ footer {
   color: #5A6272;
   padding: 2rem 0;
 }
+
+:root {
+  --bs-link-color-rgb: 10, 88, 202;
+  --bs-link-hover-color-rgb: 8, 66, 152;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #0a58ca;
+  --bs-btn-border-color: #0a58ca;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #b02a37;
+  --bs-btn-border-color: #b02a37;
+}
+
+.navbar .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+}

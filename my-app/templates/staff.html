@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Staff dashboard · Qonnect{% endblock %}
+
+{% block content %}
+{% set waiting = queue|selectattr("status", "equalto", "waiting")|list %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">
+    Queue operations
+    <span class="badge text-bg-secondary fs-6">{{ waiting|length }} waiting</span>
+  </h1>
+
+  {% if waiting %}
+    <form method="post"
+          action="{{ url_for('staff_action', ticket_id=waiting[0].number, action='call') }}">
+      <button type="submit" class="btn btn-primary btn-lg">
+        Call next (#{{ waiting[0].number }})
+      </button>
+    </form>
+  {% else %}
+    <button type="button" class="btn btn-primary btn-lg" disabled>Call next</button>
+  {% endif %}
+</div>
+
+<form method="get" action="{{ url_for('staff_dashboard') }}" class="row g-2 align-items-end mb-3">
+  <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+    <label for="service_id" class="form-label">Service</label>
+    <select id="service_id" name="service_id" class="form-select">
+      <option value="">All services</option>
+      {% for s in services %}
+        <option value="{{ s.id }}" {% if selected == s.id %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-primary">Filter</button>
+  </div>
+</form>
+
+{% if queue %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <caption>Tickets waiting or called{% if selected %} for {{ names[selected] }}{% endif %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Number</th>
+          <th scope="col">Name</th>
+          <th scope="col">Service</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in queue %}
+          <tr>
+            <th scope="row">#{{ t.number }}</th>
+            <td>{{ t.name }}</td>
+            <td>{{ names[t.service_id] }}</td>
+            <td>
+              <span class="badge {{ 'text-bg-primary' if t.status == 'called' else 'text-bg-warning' }}">
+                {{ t.status|capitalize }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <form method="post"
+                      action="{{ url_for('staff_action', ticket_id=t.number, action='serve') }}">
+                  <button type="submit" class="btn py-2 btn-success"
+                          aria-label="Mark ticket {{ t.number }} as served">Serve</button>
+                </form>
+                <form method="post"
+                      action="{{ url_for('staff_action', ticket_id=t.number, action='no-show') }}">
+                  <button type="submit" class="btn py-2 btn-outline-danger"
+                          aria-label="Mark ticket {{ t.number }} as no-show">No-show</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-light border text-center" role="status">
+    <p class="h5 mb-1">No one is waiting right now.</p>
+    <p class="mb-0 text-body-secondary">New tickets will show up here when students join the queue.</p>
+  </div>
+{% endif %}
+{% endblock %}

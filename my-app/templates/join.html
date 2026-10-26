@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Join the queue · Qonnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <h1 class="h3 mb-3">Join the queue</h1>
+
+    <form method="post" action="{{ url_for('join_form') }}" novalidate id="join-form">
+      <div class="mb-3">
+        <label for="name" class="form-label">Your name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required
+               class="form-control {% if errors and errors.name %}is-invalid{% endif %}"
+               value="{{ form.get('name', '') }}"
+               {% if errors and errors.name %}aria-describedby="name-error"{% endif %}>
+        {% if errors and errors.name %}
+          <div id="name-error" class="invalid-feedback">{{ errors.name }}</div>
+        {% endif %}
+      </div>
+
+            <div class="mb-3">
+        <label for="student_id" class="form-label">Student ID</label>
+        <input id="student_id" name="student_id" type="text" inputmode="numeric" required
+               placeholder="2024-0013"
+               class="form-control {% if errors and errors.student_id %}is-invalid{% endif %}"
+               value="{{ form.get('student_id', '') }}"
+               {% if errors and errors.student_id %}aria-describedby="student_id-error"{% endif %}>
+        {% if errors and errors.student_id %}
+          <div id="student_id-error" class="invalid-feedback">{{ errors.student_id }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">School email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required
+               class="form-control {% if errors and errors.email %}is-invalid{% endif %}"
+               value="{{ form.get('email', '') }}"
+               {% if errors and errors.email %}aria-describedby="email-error"{% endif %}>
+        {% if errors and errors.email %}
+          <div id="email-error" class="invalid-feedback">{{ errors.email }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="service_id" class="form-label">Service</label>
+        <select id="service_id" name="service_id" required
+                class="form-select {% if errors and errors.service_id %}is-invalid{% endif %}">
+          <option value="">Choose a service…</option>
+          {% for s in services %}
+            <option value="{{ s.id }}"
+              {% if form.get('service_id') == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+        {% if errors and errors.service_id %}
+          <div class="invalid-feedback">{{ errors.service_id }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-check mb-3">
+        <input id="has_documents" name="has_documents" type="checkbox"
+               class="form-check-input {% if errors and errors.has_documents %}is-invalid{% endif %}"
+               {% if form.get('has_documents') %}checked{% endif %}
+               {% if errors and errors.has_documents %}aria-describedby="has_documents-error"{% endif %}>
+        <label for="has_documents" class="form-check-label">
+          I have the required documents for this service
+        </label>
+        {% if errors and errors.has_documents %}
+          <div id="has_documents-error" class="invalid-feedback">{{ errors.has_documents }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Get a ticket</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

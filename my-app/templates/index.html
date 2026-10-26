@@ -1,14 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <p>Hello, {{ name }}!</p>
-
-  <h2>Tickets in the queue</h2>
-  <ul class="tickets">
-    {% for t in tickets %}
-      <li><a href="{{ url_for('ticket', ticket_id=t) }}">#{{ t }}</a></li>
-    {% else %}
-      <li>The queue is empty.</li>
-    {% endfor %}
-  </ul>
+  <h2>Welcome to Qonnect</h2>
+  <p>Get a queue ticket for the registrar or cashier from your device, and see your queue position without standing in line.</p>
+  <p><a class="btn btn-primary btn-lg" href="{{ url_for('join_form') }}">Join the queue</a></p>
 {% endblock %}
+
+
