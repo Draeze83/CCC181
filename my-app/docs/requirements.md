@@ -19,14 +19,14 @@
 | FR-02 ★ | A student must confirm that they have the documents the service requires before they can get a ticket. | Must | No | Built (Week 3) |
 | FR-03 | A student can see their ticket number, service, status and how many people are ahead of them. | Must | **Yes** | Built (Week 3) |
 | FR-04 | A student's ticket page updates its status by itself every 10 seconds and shows the time of the last update. | Must | No | Built (Week 3) |
-| FR-05 | A student can see an estimated wait time that is clearly labelled as an estimate. | Should | No | Built (Week 3) |
+| FR-05 | A student can see an estimated wait time that is clearly labelled as an estimate. | Should | **Yes** | Built (Week 3) |
 | FR-06 | A student can leave the queue before being called. | Must | **Yes** | Built (Week 3) |
 | FR-07 | A staff member can filter the queue to show one service only. | Must | No | Built (Week 3) |
 | FR-08 | A staff member can call the earliest waiting ticket for a service. | Must | **Yes** | Built (Week 3) |
 | FR-09 | A staff member can mark a called ticket as served or no-show. | Must | **Yes** | Built (Week 3) |
 | FR-10 | A staff member must sign in before they can see the staff dashboard or change a ticket. | Must | **Yes** | Later |
 | FR-11 | A staff member can add, rename and switch off a service, and a switched-off service no longer appears on the Join form. | Must | **Yes** | This week |
-| FR-12 ★ | A student can read the plain-language instructions and required documents for a service before joining its queue. | Must | **Yes** | This week |
+| FR-12 ★ | A student can read the plain-language instructions and required documents, and how many copies of each, for a service before joining its queue. | Must | **Yes** | This week |
 | FR-13 | A staff member can only mark a ticket served or no-show after it has been called. Waiting tickets show no Serve or No-show button. | Should | No | This week |
 | FR-14 | A student can hold only one active ticket per service at a time, checked by student ID. | Should | **Yes** | Later |
 | FR-15 ★ | A staff member can set the counter they are working at (for example "Registrar Window 2"), and a called student's ticket page shows which counter to go to. | Should | **Yes** | Later |
