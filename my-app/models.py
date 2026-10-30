@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
-
 class Counter(db.Model):
     __tablename__ = "counters"
 
@@ -16,7 +15,6 @@ class Counter(db.Model):
 
     staff: Mapped[list["User"]] = relationship(back_populates="counter")
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="counter")
-
 
 class User(db.Model):
     __tablename__ = "users"
@@ -44,7 +42,6 @@ class User(db.Model):
         CheckConstraint("role = 'student' OR password_hash IS NOT NULL", name="ck_users_staff_has_password"),
     )
 
-
 class Service(db.Model):
     __tablename__ = "services"
 
@@ -55,6 +52,7 @@ class Service(db.Model):
     avg_minutes: Mapped[int] = mapped_column(default=5, server_default="5")
     allows_remote: Mapped[bool] = mapped_column(default=True, server_default=true())
     is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
+    active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="service")
     # passive_deletes lets the database's ON DELETE CASCADE remove the links
@@ -67,7 +65,6 @@ class Service(db.Model):
         CheckConstraint("avg_minutes > 0", name="ck_services_avg_minutes"),
     )
 
-
 class Document(db.Model):
     __tablename__ = "documents"
 
@@ -75,7 +72,6 @@ class Document(db.Model):
     name: Mapped[str] = mapped_column(String(100), unique=True)
 
     services: Mapped[list["ServiceDocument"]] = relationship(back_populates="document")
-
 
 class ServiceDocument(db.Model):
     __tablename__ = "service_documents"
@@ -90,7 +86,6 @@ class ServiceDocument(db.Model):
     __table_args__ = (
         CheckConstraint("copies > 0", name="ck_service_documents_copies"),
     )
-
 
 class Ticket(db.Model):
     __tablename__ = "tickets"

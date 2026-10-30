@@ -12,8 +12,8 @@
   </h1>
 
   {% if waiting %}
-    <form method="post"
-          action="{{ url_for('staff_action', ticket_id=waiting[0].id, action='call') }}">
+    <form method="post" action="{{ url_for('call_next') }}">
+      {% if selected %}<input type="hidden" name="service_id" value="{{ selected }}">{% endif %}
       <button type="submit" class="btn btn-primary btn-lg">
         Call next (#{{ waiting[0].id }})
       </button>
@@ -65,16 +65,29 @@
               </span>
             </td>
             <td>
-              <div class="d-flex gap-2">
-                <form method="post"
-                      action="{{ url_for('staff_action', ticket_id=t.id, action='serve') }}">
-                  <button type="submit" class="btn py-2 btn-success"
-                          aria-label="Mark ticket {{ t.id }} as served">Serve</button>
-                </form>
-                <form method="post"
-                      action="{{ url_for('staff_action', ticket_id=t.id, action='no-show') }}">
-                  <button type="submit" class="btn py-2 btn-outline-danger"
-                          aria-label="Mark ticket {{ t.id }} as no-show">No-show</button>
+              <div class="d-flex flex-wrap gap-2">
+                {% if t.status == "waiting" %}
+                  <form method="post"
+                        action="{{ url_for('staff_action', ticket_id=t.id, action='call') }}">
+                    <button type="submit" class="btn py-2 btn-primary"
+                            aria-label="Call ticket {{ t.id }}">Call</button>
+                  </form>
+                {% else %}
+                  <form method="post"
+                        action="{{ url_for('staff_action', ticket_id=t.id, action='serve') }}">
+                    <button type="submit" class="btn py-2 btn-success"
+                            aria-label="Mark ticket {{ t.id }} as served">Serve</button>
+                  </form>
+                  <form method="post"
+                        action="{{ url_for('staff_action', ticket_id=t.id, action='no-show') }}">
+                    <button type="submit" class="btn py-2 btn-outline-danger"
+                            aria-label="Mark ticket {{ t.id }} as no-show">No-show</button>
+                  </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('delete_ticket', ticket_id=t.id) }}"
+                      data-confirm="Delete ticket {{ t.id }}? This cannot be undone.">
+                  <button type="submit" class="btn py-2 btn-outline-secondary"
+                          aria-label="Delete ticket {{ t.id }}">Delete</button>
                 </form>
               </div>
             </td>

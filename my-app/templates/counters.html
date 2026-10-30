@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Manage counters · Qonnect{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Manage counters</h1>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-3">Add a counter</h2>
+    <form method="post" action="{{ url_for('counter_create') }}" class="row g-2 align-items-end">
+      <div class="col-12 col-md-8">
+        <label for="new-counter" class="form-label">Name</label>
+        <input id="new-counter" name="name" type="text" maxlength="60" required
+               placeholder="Registrar Window 2" class="form-control">
+      </div>
+      <div class="col-12 col-md-4">
+        <button type="submit" class="btn btn-primary w-100">Add counter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <caption>Service counters</caption>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Tickets</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in counters %}
+        <tr>
+          <td>
+            <label for="counter-{{ c.id }}" class="visually-hidden">Name of {{ c.name }}</label>
+            <input id="counter-{{ c.id }}" name="name" form="edit-counter-{{ c.id }}" type="text"
+                   maxlength="60" required value="{{ c.name }}" class="form-control">
+          </td>
+          <td>{{ c.tickets|length }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <form id="edit-counter-{{ c.id }}" method="post"
+                    action="{{ url_for('counter_edit', counter_id=c.id) }}">
+                <button type="submit" class="btn py-2 btn-outline-primary"
+                        aria-label="Save {{ c.name }}">Save</button>
+              </form>
+              <form method="post" action="{{ url_for('counter_delete', counter_id=c.id) }}"
+                    data-confirm="Delete {{ c.name }}? This cannot be undone.">
+                <button type="submit" class="btn py-2 btn-outline-danger"
+                        aria-label="Delete {{ c.name }}">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3" class="text-center text-body-secondary">No counters yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

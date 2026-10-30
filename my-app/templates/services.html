@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Manage services · Qonnect{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Manage services</h1>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-3">Add a service</h2>
+    <form method="post" action="{{ url_for('service_create') }}" class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label for="new-name" class="form-label">Name</label>
+        <input id="new-name" name="name" type="text" maxlength="80" required class="form-control">
+      </div>
+      <div class="col-6 col-md-2">
+        <label for="new-prefix" class="form-label">Prefix</label>
+        <input id="new-prefix" name="prefix" type="text" maxlength="3" required
+               placeholder="E" class="form-control text-uppercase">
+      </div>
+      <div class="col-6 col-md-3">
+        <label for="new-minutes" class="form-label">Average minutes</label>
+        <input id="new-minutes" name="avg_minutes" type="number" min="1" value="5" required
+               class="form-control">
+      </div>
+      <div class="col-12 col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Add service</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <caption>All services, including ones that are switched off</caption>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Prefix</th>
+        <th scope="col">Average minutes</th>
+        <th scope="col">Active</th>
+        <th scope="col">Tickets</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in services %}
+        <tr>
+          <td>
+            <label for="name-{{ s.id }}" class="visually-hidden">Name of {{ s.name }}</label>
+            <input id="name-{{ s.id }}" name="name" form="edit-{{ s.id }}" type="text"
+                   maxlength="80" required value="{{ s.name }}" class="form-control">
+          </td>
+          <td>{{ s.prefix }}</td>
+          <td>
+            <label for="minutes-{{ s.id }}" class="visually-hidden">Average minutes for {{ s.name }}</label>
+            <input id="minutes-{{ s.id }}" name="avg_minutes" form="edit-{{ s.id }}" type="number"
+                   min="1" required value="{{ s.avg_minutes }}" class="form-control">
+          </td>
+          <td>
+            <div class="form-check">
+              <input id="active-{{ s.id }}" name="active" form="edit-{{ s.id }}" type="checkbox"
+                     class="form-check-input" {% if s.active %}checked{% endif %}>
+              <label for="active-{{ s.id }}" class="form-check-label">Active</label>
+            </div>
+          </td>
+          <td>{{ s.tickets|length }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <form id="edit-{{ s.id }}" method="post"
+                    action="{{ url_for('service_edit', service_id=s.id) }}">
+                <button type="submit" class="btn py-2 btn-outline-primary"
+                        aria-label="Save {{ s.name }}">Save</button>
+              </form>
+              <form method="post" action="{{ url_for('service_delete', service_id=s.id) }}"
+                    data-confirm="Delete {{ s.name }}? This cannot be undone.">
+                <button type="submit" class="btn py-2 btn-outline-danger"
+                        aria-label="Delete {{ s.name }}">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="text-center text-body-secondary">No services yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

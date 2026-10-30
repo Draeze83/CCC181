@@ -57,25 +57,27 @@ def ticket(ticket_id):
 
 @app.post("/queue/<int:ticket_id>/leave")
 def leave(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    t["status"] = "no-show"
-    flash(f"You left the queue. Ticket #{t['number']} has been cancelled.", "info")
+    t = db.get_or_404(Ticket, ticket_id)
+    if t.status != "waiting":
+        flash("You can only leave the queue while you are still waiting.", "warning")
+        return redirect(url_for("ticket", ticket_id=t.id))
+    t.status = "left"  # soft delete: the row stays for reports
+    t.finished_at = func.now()  # ck_tickets_finished_matches_status needs this
+    db.session.commit()
+    flash(f"You left the queue. Ticket #{t.id} has been cancelled.", "info")
     return redirect(url_for("index"))
 
-
 def all_services():
-    # FR-11: a switched-off service no longer appears on the Join form
-    return db.session.scalars(
-        db.select(Service).filter_by(is_active=True).order_by(Service.name)
-    ).all()
+    return db.session.scalars(db.select(Service).order_by(Service.name)).all()
 
+def active_services():
+    # FR-11: a switched-off service no longer appears on the Join form
+    stmt = db.select(Service).filter_by(active=True).order_by(Service.name)
+    return db.session.scalars(stmt).all()
 
 @app.get("/join")
 def join_form():
-    return render_template("join.html", services=all_services(), form={})
-
+    return render_template("join.html", services=active_services(), form={})
 
 @app.post("/join")
 def join():
@@ -93,7 +95,7 @@ def join():
     # Same pattern as ck_users_email_format, so the database never rejects it
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) or len(email) > 120:
         errors["email"] = "Enter a valid email address."
-    if service is None or not service.is_active:
+    if service is None or not service.active:
         errors["service_id"] = "Choose a service."
     match = re.fullmatch(r"(\d{4})-?(\d{4})", student_id)
     if match is None:
@@ -115,7 +117,7 @@ def join():
 
     if errors:
         flash("Please fix the highlighted fields.", "danger")
-        return render_template("join.html", services=all_services(),
+        return render_template("join.html", services=active_services(),
                                form=form, errors=errors), 400
 
     if user is None:
@@ -138,7 +140,7 @@ def join():
     except IntegrityError:
         db.session.rollback()
         flash("Something went wrong saving your ticket. Please try again.", "danger")
-        return render_template("join.html", services=all_services(),
+        return render_template("join.html", services=active_services(),
                                form=form, errors={}), 409
 
     flash(f"You joined the queue. Your ticket is #{ticket.id}.", "success")
@@ -156,15 +158,155 @@ def staff_dashboard():
     return render_template("staff.html", queue=queue, services=all_services(),
                            selected=service_id)
 
+STAFF_ACTIONS = {"call": "called", "serve": "served", "no-show": "no-show"}
+# FR-13: the status a ticket must have before each change
+STATUS_BEFORE = {"called": "waiting", "served": "called", "no-show": "called"}
+
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
 def staff_action(ticket_id, action):
-    new_status = {"call": "called", "serve": "served", "no-show": "no-show"}.get(action)
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None or new_status is None:
+    new_status = STAFF_ACTIONS.get(action)
+    if new_status is None:
         abort(404)
-    t["status"] = new_status
+    t = db.get_or_404(Ticket, ticket_id)
+    if t.status != STATUS_BEFORE[new_status]:
+        flash(f"Ticket #{ticket_id} is {t.status}, so it cannot be marked {new_status}.", "warning")
+        return redirect(url_for("staff_dashboard"))
+    t.status = new_status
+    if new_status == "called":
+        t.called_at = func.now()  # the database fills in the time
+    else:
+        t.finished_at = func.now()
+    db.session.commit()
     flash(f"Ticket #{ticket_id} marked {new_status}.", "info")
     return redirect(url_for("staff_dashboard"))
+
+@app.post("/staff/call-next")
+def call_next():
+    service_id = request.form.get("service_id", type=int)
+    stmt = db.select(Ticket).filter_by(status="waiting")
+    if service_id:
+        stmt = stmt.filter_by(service_id=service_id)
+    t = db.session.scalar(stmt.order_by(Ticket.created_at).limit(1))
+    if t is None:
+        flash("No one is waiting right now.", "info")
+    else:
+        t.status = "called"
+        t.called_at = func.now()
+        db.session.commit()
+        flash(f"Ticket #{t.id} called.", "info")
+    return redirect(url_for("staff_dashboard", service_id=service_id))
+
+@app.post("/staff/tickets/<int:ticket_id>/delete")
+def delete_ticket(ticket_id):
+    t = db.get_or_404(Ticket, ticket_id)
+    db.session.delete(t)  # hard delete: the row is gone for good
+    db.session.commit()
+    flash(f"Ticket #{ticket_id} was deleted.", "warning")
+    return redirect(url_for("staff_dashboard"))
+
+@app.get("/staff/services")
+def services_list():
+    return render_template("services.html", services=all_services())
+
+@app.post("/staff/services")
+def service_create():
+    name = request.form.get("name", "").strip()
+    prefix = request.form.get("prefix", "").strip().upper()
+    minutes = request.form.get("avg_minutes", type=int)
+    if not name or len(name) > 80 or not minutes or minutes <= 0:
+        flash("Enter a name (up to 80 characters) and minutes greater than 0.", "danger")
+        return redirect(url_for("services_list"))
+    # Same pattern as ck_services_prefix
+    if not re.fullmatch(r"[A-Z]{1,3}", prefix):
+        flash("Enter a prefix of 1 to 3 letters, for example E.", "danger")
+        return redirect(url_for("services_list"))
+    db.session.add(Service(name=name, prefix=prefix, avg_minutes=minutes))
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” added.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” or with prefix {prefix} already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>/edit")
+def service_edit(service_id):
+    s = db.get_or_404(Service, service_id)
+    name = request.form.get("name", "").strip()
+    minutes = request.form.get("avg_minutes", type=int)
+    if not name or len(name) > 80 or not minutes or minutes <= 0:
+        flash("Enter a name (up to 80 characters) and minutes greater than 0.", "danger")
+        return redirect(url_for("services_list"))
+    s.name = name
+    s.avg_minutes = minutes
+    s.active = request.form.get("active") == "on"
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” updated.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>/delete")
+def service_delete(service_id):
+    s = db.get_or_404(Service, service_id)
+    name = s.name
+    if s.tickets:
+        flash(f"“{name}” has tickets, so it cannot be deleted. Turn it off instead.", "danger")
+        return redirect(url_for("services_list"))
+    db.session.delete(s)
+    db.session.commit()
+    flash(f"Service “{name}” deleted.", "warning")
+    return redirect(url_for("services_list"))
+
+@app.get("/staff/counters")
+def counters_list():
+    counters = db.session.scalars(db.select(Counter).order_by(Counter.name)).all()
+    return render_template("counters.html", counters=counters)
+
+@app.post("/staff/counters")
+def counter_create():
+    name = request.form.get("name", "").strip()
+    if not name or len(name) > 60:
+        flash("Enter a counter name (up to 60 characters).", "danger")
+        return redirect(url_for("counters_list"))
+    db.session.add(Counter(name=name))
+    try:
+        db.session.commit()
+        flash(f"Counter “{name}” added.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A counter named “{name}” already exists.", "danger")
+    return redirect(url_for("counters_list"))
+
+@app.post("/staff/counters/<int:counter_id>/edit")
+def counter_edit(counter_id):
+    c = db.get_or_404(Counter, counter_id)
+    name = request.form.get("name", "").strip()
+    if not name or len(name) > 60:
+        flash("Enter a counter name (up to 60 characters).", "danger")
+        return redirect(url_for("counters_list"))
+    c.name = name
+    try:
+        db.session.commit()
+        flash(f"Counter renamed to “{name}”.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A counter named “{name}” already exists.", "danger")
+    return redirect(url_for("counters_list"))
+
+@app.post("/staff/counters/<int:counter_id>/delete")
+def counter_delete(counter_id):
+    c = db.get_or_404(Counter, counter_id)
+    name = c.name
+    if c.tickets:  # tickets.counter_id is ON DELETE RESTRICT
+        flash(f"“{name}” has served tickets, so it cannot be deleted.", "danger")
+        return redirect(url_for("counters_list"))
+    db.session.delete(c)
+    db.session.commit()
+    flash(f"Counter “{name}” deleted.", "warning")
+    return redirect(url_for("counters_list"))
 
 @app.get("/queue/<int:ticket_id>/status.json")
 def ticket_status(ticket_id):

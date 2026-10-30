@@ -12,3 +12,10 @@ if (joinForm) {
 
 const firstInvalid = document.querySelector(".is-invalid");
 if (firstInvalid) firstInvalid.focus();
+
+// Ask before any form marked data-confirm, such as a hard delete.
+document.querySelectorAll("form[data-confirm]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    if (!confirm(form.dataset.confirm)) event.preventDefault();
+  });
+});
