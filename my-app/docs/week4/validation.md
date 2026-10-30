@@ -3,6 +3,7 @@
 | Rule | Layer | How I tested it | What happened |
 |---|---|---|---|
 | Required fields, email format, max length | Browser | Submitted the Join form empty, typed `abc` as email, typed 101+ characters as name | Browser blocked the submit and stopped typing at the limit |
+| Student ID is at most 9 characters, dash included | Browser (`maxlength="9"`) | Typed `2024-00133` in Student ID | Typing stopped at `2024-0013` |
 | Email must be valid, name required, service must exist | Flask | curl with `name=`, `email=not-an-email`, `service_id=999` | 400 BAD REQUEST, nothing saved |
 | Name is at most 100 characters | Flask | curl with a 200-character name, other fields valid | 400 BAD REQUEST, nothing saved |
 | Student ID must be `0000-0000` | Flask | curl with `student_id=abc`, other fields valid | 400 BAD REQUEST, nothing saved |

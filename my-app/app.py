@@ -90,15 +90,27 @@ def join():
     service = db.session.get(Service, service_id) if service_id else None
 
     errors = {}
-    if not name or len(name) > 100:
-        errors["name"] = "Enter your name (up to 100 characters)."
+    if not name:
+        errors["name"] = "Enter your name."
+    elif len(name) > 100:
+        errors["name"] = f"Your name must be 100 characters or fewer (you entered {len(name)})."
     # Same pattern as ck_users_email_format, so the database never rejects it
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) or len(email) > 120:
-        errors["email"] = "Enter a valid email address."
+    if not email:
+        errors["email"] = "Enter your school email."
+    elif not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        errors["email"] = "Enter a valid email address, for example ana@school.edu."
+    elif len(email) > 120:
+        errors["email"] = "Your email must be 120 characters or fewer."
     if service is None or not service.active:
         errors["service_id"] = "Choose a service."
-    match = re.fullmatch(r"(\d{4})-?(\d{4})", student_id)
-    if match is None:
+    # [0-9], not \d: Python's \d also matches non-ASCII digits that the database CHECK rejects
+    match = re.fullmatch(r"([0-9]{4})-?([0-9]{4})", student_id)
+    if not student_id:
+        errors["student_id"] = "Enter your student ID, for example 2024-0013."
+    elif len(student_id) > 9:
+        errors["student_id"] = (f"Your student ID must be 9 characters or fewer, "
+                                f"including the dash (you entered {len(student_id)}).")
+    elif match is None:
         errors["student_id"] = "Enter your 8-digit student ID, for example 2024-0013."
     else:
         # Store as 2024-0013 to match ck_users_student_id_format
