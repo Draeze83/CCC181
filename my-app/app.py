@@ -1,6 +1,7 @@
 import os
 import re
 
+from datetime import timedelta, timezone
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
@@ -19,30 +20,27 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 db.init_app(app)
 migrate = Migrate(app, db)
 
-TICKETS = [
-    {"number": 1, "name": "Kurt", "email": "kurt@school.edu", "service_id": 1, "status": "waiting"},
-    {"number": 2, "name": "Raven", "email": "raven@school.edu", "service_id": 2, "status": "waiting"},
-    {"number": 3, "name": "Winchester", "email": "winchester@school.edu", "service_id": 3, "status": "waiting"},
-    {"number": 4, "name": "James", "email": "james@school.edu", "service_id": 4, "status": "waiting"}
-]
+PH_TIME = timezone(timedelta(hours=8))  # Philippine time has no daylight saving
 
-SERVICES = [
-    {"id": 1, "name": "Enrollment"},
-    {"id": 2, "name": "Document Requests"},
-    {"id": 3, "name": "Payments and Fees"},
-    {"id": 4, "name": "Student Records"},
-    {"id": 5, "name": "Registration"},
-    {"id": 6, "name": "Clearance Verification"}
-]
+@app.template_filter("local")
+def local_time(value):
+    """Show a database time in Philippine time, e.g. Oct 26, 08:01 AM."""
+    return value.astimezone(PH_TIME).strftime("%b %d, %I:%M %p") if value else ""
 
-AVG_MINUTES_PER_TICKET = 5  # rough guess; confirm a realistic figure with the office
-
-
-def wait_estimate(ahead):
+def wait_estimate(ahead, avg_minutes):
     """Only an estimate: real transactions vary in length."""
     if ahead == 0:
-        return f"under {AVG_MINUTES_PER_TICKET} minutes"
-    return f"about {ahead * AVG_MINUTES_PER_TICKET} minutes"
+        return f"under {avg_minutes} minutes"
+    return f"about {ahead * avg_minutes} minutes"
+
+def people_ahead(t):
+    """Count tickets still waiting for the same service that joined before t."""
+    stmt = (db.select(func.count())
+            .select_from(Ticket)
+            .where(Ticket.service_id == t.service_id,
+                   Ticket.status == "waiting",
+                   Ticket.created_at < t.created_at))
+    return db.session.scalar(stmt)
 
 @app.route("/")
 def index():
@@ -52,16 +50,10 @@ def index():
 
 @app.get("/queue/<int:ticket_id>")
 def ticket(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = [x for x in TICKETS
-             if x["service_id"] == t["service_id"]
-             and x["status"] == "waiting"
-             and x["number"] < t["number"]]
-    service = next(s for s in SERVICES if s["id"] == t["service_id"])
-    return render_template("ticket.html", ticket=t, service=service, ahead=len(ahead),
-                           wait_text=wait_estimate(len(ahead)))
+    t = db.get_or_404(Ticket, ticket_id)
+    ahead = people_ahead(t)
+    return render_template("ticket.html", ticket=t, service=t.service, ahead=ahead,
+                           wait_text=wait_estimate(ahead, t.service.avg_minutes))
 
 @app.post("/queue/<int:ticket_id>/leave")
 def leave(ticket_id):
@@ -73,9 +65,17 @@ def leave(ticket_id):
     return redirect(url_for("index"))
 
 
-@app.route("/join")
+def all_services():
+    # FR-11: a switched-off service no longer appears on the Join form
+    return db.session.scalars(
+        db.select(Service).filter_by(is_active=True).order_by(Service.name)
+    ).all()
+
+
+@app.get("/join")
 def join_form():
-    return render_template("join.html", services=SERVICES, form={})
+    return render_template("join.html", services=all_services(), form={})
+
 
 @app.post("/join")
 def join():
@@ -85,39 +85,76 @@ def join():
     service_id = form.get("service_id", type=int)
     student_id = form.get("student_id", "").strip()
     has_documents = form.get("has_documents") == "on"
+    service = db.session.get(Service, service_id) if service_id else None
 
     errors = {}
-    if not name:
-        errors["name"] = "Enter your name."
-    if "@" not in email:
+    if not name or len(name) > 100:
+        errors["name"] = "Enter your name (up to 100 characters)."
+    # Same pattern as ck_users_email_format, so the database never rejects it
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) or len(email) > 120:
         errors["email"] = "Enter a valid email address."
-    if service_id not in [s["id"] for s in SERVICES]:
+    if service is None or not service.is_active:
         errors["service_id"] = "Choose a service."
-    if not re.fullmatch(r"\d{4}-?\d{4}", student_id):
+    match = re.fullmatch(r"(\d{4})-?(\d{4})", student_id)
+    if match is None:
         errors["student_id"] = "Enter your 8-digit student ID, for example 2024-0013."
+    else:
+        # Store as 2024-0013 to match ck_users_student_id_format
+        student_id = f"{match[1]}-{match[2]}"
     if not has_documents:
         errors["has_documents"] = "Confirm you have the required documents before joining."
 
+    user = None
+    if not errors:
+        user = db.session.scalar(db.select(User).filter_by(student_id=student_id))
+        if user is None:
+            if db.session.scalar(db.select(User).filter_by(email=email)) is not None:
+                errors["email"] = "This email is already used with a different student ID."
+        elif user.email != email:
+            errors["student_id"] = "This student ID is registered with a different email."
+
     if errors:
         flash("Please fix the highlighted fields.", "danger")
-        return render_template("join.html", services=SERVICES, form=form, errors=errors), 400
+        return render_template("join.html", services=all_services(),
+                               form=form, errors=errors), 400
 
-    number = TICKETS[-1]["number"] + 1 if TICKETS else 1
-    TICKETS.append({"number": number, "name": name, "email": email,
-                    "service_id": service_id, "status": "waiting",
-                    "student_id": student_id})
-    flash(f"You joined the queue. Your ticket is #{number}.", "success")
-    return redirect(url_for("ticket", ticket_id=number))
+    if user is None:
+        user = User(name=name, email=email, student_id=student_id)
+    else:
+        # FR-14: one active ticket per student per service
+        active = db.session.scalar(
+            db.select(Ticket).filter(Ticket.user_id == user.id,
+                                     Ticket.service_id == service.id,
+                                     Ticket.status.in_(("waiting", "called")))
+        )
+        if active is not None:
+            flash(f"You are already in this queue. Your ticket is #{active.id}.", "info")
+            return redirect(url_for("ticket", ticket_id=active.id))
+
+    ticket = Ticket(user=user, service=service)
+    db.session.add(ticket)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash("Something went wrong saving your ticket. Please try again.", "danger")
+        return render_template("join.html", services=all_services(),
+                               form=form, errors={}), 409
+
+    flash(f"You joined the queue. Your ticket is #{ticket.id}.", "success")
+    return redirect(url_for("ticket", ticket_id=ticket.id))
 
 @app.get("/staff")
 def staff_dashboard():
     service_id = request.args.get("service_id", type=int)
-    queue = [t for t in TICKETS if t["status"] in ("waiting", "called")]
+    stmt = (db.select(Ticket)
+            .where(Ticket.status.in_(["waiting", "called"]))
+            .order_by(Ticket.created_at))
     if service_id:
-        queue = [t for t in queue if t["service_id"] == service_id]
-    names = {s["id"]: s["name"] for s in SERVICES}
-    return render_template("staff.html", queue=queue, services=SERVICES,
-                           names=names, selected=service_id)
+        stmt = stmt.where(Ticket.service_id == service_id)
+    queue = db.session.scalars(stmt).all()
+    return render_template("staff.html", queue=queue, services=all_services(),
+                           selected=service_id)
 
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
 def staff_action(ticket_id, action):
@@ -131,13 +168,10 @@ def staff_action(ticket_id, action):
 
 @app.get("/queue/<int:ticket_id>/status.json")
 def ticket_status(ticket_id):
-    t = next((t for t in TICKETS if t["number"] == ticket_id), None)
-    if t is None:
-        abort(404)
-    ahead = sum(1 for x in TICKETS
-                if x["service_id"] == t["service_id"]
-                and x["status"] == "waiting" and x["number"] < t["number"])
-    return {"status": t["status"], "ahead": ahead, "wait_text": wait_estimate(ahead)}
+    t = db.get_or_404(Ticket, ticket_id)
+    ahead = people_ahead(t)
+    return {"status": t.status, "ahead": ahead,
+            "wait_text": wait_estimate(ahead, t.service.avg_minutes)}
 
 @app.route("/hello")
 def hello():
