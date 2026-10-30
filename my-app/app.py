@@ -86,7 +86,6 @@ def join():
     student_id = form.get("student_id", "").strip()
     has_documents = form.get("has_documents") == "on"
 
-
     errors = {}
     if not name:
         errors["name"] = "Enter your name."
@@ -140,11 +139,28 @@ def ticket_status(ticket_id):
                 and x["status"] == "waiting" and x["number"] < t["number"])
     return {"status": t["status"], "ahead": ahead, "wait_text": wait_estimate(ahead)}
 
-
 @app.route("/hello")
 def hello():
     # The plain-string version from the Routes slide.
     return "Hello, CCC181!"
+
+@app.cli.command("seed")
+def seed():
+    """Add the starting services if they are not there yet."""
+    starting = [
+        ("Enrollment", "E", 5),
+        ("Document Requests", "D", 5),
+        ("Payments and Fees", "P", 5),
+        ("Student Records", "S", 5),
+        ("Registration", "R", 5),
+        ("Clearance Verification", "C", 5),
+    ]
+    for name, prefix, minutes in starting:
+        exists = db.session.scalar(db.select(Service).filter_by(name=name))
+        if exists is None:
+            db.session.add(Service(name=name, prefix=prefix, avg_minutes=minutes))
+    db.session.commit()
+    print("Services are ready.")
 
 if __name__ == "__main__":
     # Lets you also start the app with: python app.py
