@@ -60,7 +60,7 @@
           <td>
             <div class="form-check">
               <input id="active-{{ s.id }}" name="active" form="edit-{{ s.id }}" type="checkbox"
-                     class="form-check-input" {% if s.active %}checked{% endif %}>
+                     class="form-check-input" {% if s.is_active %}checked{% endif %}>
               <label for="active-{{ s.id }}" class="form-check-label">Active</label>
             </div>
           </td>

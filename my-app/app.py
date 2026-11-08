@@ -72,7 +72,7 @@ def all_services():
 
 def active_services():
     # FR-11: a switched-off service no longer appears on the Join form
-    stmt = db.select(Service).filter_by(active=True).order_by(Service.name)
+    stmt = db.select(Service).filter_by(is_active=True).order_by(Service.name)
     return db.session.scalars(stmt).all()
 
 @app.get("/join")
@@ -101,7 +101,7 @@ def join():
         errors["email"] = "Enter a valid email address, for example ana@school.edu."
     elif len(email) > 120:
         errors["email"] = "Your email must be 120 characters or fewer."
-    if service is None or not service.active:
+    if service is None or not service.is_active:
         errors["service_id"] = "Choose a service."
     # [0-9], not \d: Python's \d also matches non-ASCII digits that the database CHECK rejects
     match = re.fullmatch(r"([0-9]{4})-?([0-9]{4})", student_id)
@@ -251,7 +251,7 @@ def service_edit(service_id):
         return redirect(url_for("services_list"))
     s.name = name
     s.avg_minutes = minutes
-    s.active = request.form.get("active") == "on"
+    s.is_active = request.form.get("active") == "on"
     try:
         db.session.commit()
         flash(f"Service “{name}” updated.", "success")

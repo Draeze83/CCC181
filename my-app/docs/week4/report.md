@@ -16,7 +16,7 @@
 
 I wrote **20 functional requirements** (FR-01 to FR-20) and **8 non-functional requirements** (NFR-01 to NFR-08). Full list: [docs/requirements.md](../requirements.md)
 
-**MVP:** FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, NFR-01, NFR-02, NFR-03, NFR-06, NFR-07, NFR-08
+**MVP:** FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-15, NFR-01, NFR-02, NFR-03, NFR-06, NFR-07, NFR-08
 
 This is the smallest version that still solves the problem. A student can find the right service, get a ticket, follow their place from their phone and leave if they need to. Staff can sign in, keep the service list correct, and move tickets through call, serve and no-show without losing any data.
 
@@ -24,7 +24,7 @@ This is the smallest version that still solves the problem. A student can find t
 
 | Who | What they said | What I changed |
 | --- | --- | --- |
-| 3rd-year student | "Dali lang siya gamiton ug sakto ra" (It's easy to use and just right) | Kept the list as it is, because the student found the join flow easy and didn't ask for anything missing. |
+| 3rd-year student | "Ipakit sa ticket kung asa nga counter muadto" (Show in the ticket which counter to go) | Changed FR-15 (staff set their counter, and a called student's ticket shows it) from Should to Must and added it to the MVP. |
 
 ## ERD
 
@@ -191,6 +191,7 @@ Full review: [docs/week4/schema-review.md](schema-review.md)
 | --- | --- |
 | `0d5fd8266d18_initial_schema.py` | Creates all six tables (`users`, `services`, `tickets`, `counters`, `documents`, `service_documents`) with their primary keys, foreign keys, UNIQUE and CHECK constraints, and the partial unique index `uq_tickets_one_active`. |
 | `bf6124cb79a7_add_services_active.py` | Adds a boolean `active` column to `services` (NOT NULL, default `true`) so staff can switch a service off without deleting it. |
+| `d0a9d4e4e5a0_drop_duplicate_services_active.py` | Removes `active` again, because `services` already had `is_active` (the column in the ERD), so the same fact was stored twice. It copies `active` into `is_active` first so no on/off setting is lost, and the downgrade copies it back. The app now uses `is_active`. |
 
 `flask --app app db check` prints `No new upgrade operations detected.`, so the models and the migrations match.
 

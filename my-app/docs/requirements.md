@@ -29,7 +29,7 @@
 | FR-12 ★ | A student can read the plain-language instructions and required documents, and how many copies of each, for a service before joining its queue. | Must | **Yes** | This week |
 | FR-13 | A staff member can only mark a ticket served or no-show after it has been called. Waiting tickets show no Serve or No-show button. | Should | No | This week |
 | FR-14 | A student can hold only one active ticket per service at a time, checked by student ID. | Should | **Yes** | Later |
-| FR-15 ★ | A staff member can set the counter they are working at (for example "Registrar Window 2"), and a called student's ticket page shows which counter to go to. | Should | **Yes** | Later |
+| FR-15 ★ | A staff member can set the counter they are working at (for example "Registrar Window 2"), and a called student's ticket page shows which counter to go to. | Must | **Yes** | Later |
 | FR-16 ★ | A staff member can set whether a service allows remote joining or in-person joining only, and the Join form follows that setting. | Should | **Yes** | Later |
 | FR-17 | A staff member can see, for each service and day, how many tickets were served, marked no-show or left before being served. | Should | **Yes** | Later |
 | FR-18 ★ | Each ticket number starts with a service prefix (for example D-012 for Document Requests) so students and staff can tell which line a ticket belongs to. | Could | **Yes** | Later |
@@ -51,7 +51,7 @@
 
 ## MVP
 
-**MVP:** FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, NFR-01, NFR-02, NFR-03, NFR-06, NFR-07, NFR-08
+**MVP:** FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-15, NFR-01, NFR-02, NFR-03, NFR-06, NFR-07, NFR-08
 
 This is the smallest version that still solves the problem. A student can find the right service, get a ticket, follow their place from their phone and leave if they need to. Staff can sign in, keep the service list correct, and move tickets through call, serve and no-show without losing any data. Without any one of these, students go back to standing in line or staff go back to tracking the queue by hand.
 

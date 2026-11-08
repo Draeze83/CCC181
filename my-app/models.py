@@ -52,7 +52,6 @@ class Service(db.Model):
     avg_minutes: Mapped[int] = mapped_column(default=5, server_default="5")
     allows_remote: Mapped[bool] = mapped_column(default=True, server_default=true())
     is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
-    active: Mapped[bool] = mapped_column(default=True, server_default=true())
 
     tickets: Mapped[list["Ticket"]] = relationship(back_populates="service")
     # passive_deletes lets the database's ON DELETE CASCADE remove the links
