@@ -10,7 +10,7 @@
 | **Student ID** | 2024-0013 |
 | **Section** | CS3 |
 | **Date** | November 9, 2026 |
-| **Pull request** | [TODO: link to the feature/week4-database PR] |
+| **Pull request** | https://github.com/Draeze83/CCC181/pull/7 |
 
 ## Requirements
 
