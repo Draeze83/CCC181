@@ -17,3 +17,9 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local Claude Code agent setup (mattpocock-skills config)
+.claude/
+
+# Local issue tracker files (specs, tickets, wayfinder maps)
+.scratch/
