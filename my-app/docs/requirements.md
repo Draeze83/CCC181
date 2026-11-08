@@ -65,4 +65,4 @@ This is the smallest version that still solves the problem. A student can find t
 
 | Who (role only, no full name) | What they said | What I changed |
 | --- | --- | --- |
-| 3rd-year student | "[their words]" | [e.g. Added FR-21 (Should) / Moved FR-15 to Must / Kept the list because …] |
+| 3rd-year student | "Ipakit sa ticket kung asa nga counter muadto" (Show in the ticket which counter to go) | FR-15 to Must |
