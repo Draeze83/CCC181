@@ -24,16 +24,35 @@ Built with Python, Flask and Bootstrap 5 for **CCC181**.
 
 ## How to run it
 
-You need [Python 3](https://www.python.org/downloads/) and Git.
+You need [Python 3](https://www.python.org/downloads/), Git, and [Docker Desktop](https://www.docker.com/products/docker-desktop/) (it runs the PostgreSQL database). Start Docker Desktop before step 3.
 
-**1. Get the code**
+**1. Get the code and go into the `my-app` folder**
 
 ```bash
 git clone https://github.com/Draeze83/Qonnect-Python-Flask-App-.git
-cd Qonnect-Python-Flask-App-
+cd Qonnect-Python-Flask-App-/my-app
 ```
 
-**2. Create and activate a virtual environment** (create it once; activate it in every new terminal)
+Run every command below from inside `my-app`.
+
+**2. Create your `.env` file from the example**
+
+```bash
+cp .env.example .env            # macOS/Linux, Git Bash, or PowerShell
+copy .env.example .env          # Windows Command Prompt
+```
+
+`.env` holds the database password and connection URL. It is ignored by Git, so it never gets committed. You can keep `change-me` for local work; if you change it, change it in both lines.
+
+**3. Start the database**
+
+```bash
+docker compose up -d
+```
+
+This starts PostgreSQL 17 in a container named `qonnect-db` on port 5432. Check it with `docker compose ps`; wait until it shows `healthy`.
+
+**4. Create and activate a virtual environment** (create it once; activate it in every new terminal)
 
 ```bash
 python -m venv .venv
@@ -44,25 +63,43 @@ source .venv/bin/activate       # macOS/Linux
 
 Your prompt shows `(.venv)` when it is active. If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt.
 
-**3. Install the packages**
+**5. Install the packages**
 
 ```bash
-pip install -r my-app/requirements.txt
+pip install -r requirements.txt
 ```
 
-**4. Start the app from inside the `my-app` folder**
+**6. Create the tables**
 
 ```bash
-cd my-app
+flask --app app db upgrade
+```
+
+This runs the migrations in `migrations/` against the database.
+
+**7. Add the starting services**
+
+```bash
+flask --app app seed
+```
+
+It prints `Services are ready.` Running it again is safe; it skips services that already exist.
+
+**8. Start the app**
+
+```bash
 flask --app app run --debug
 ```
 
-**5. Open http://127.0.0.1:5000 in your browser.**
+**9. Open http://127.0.0.1:5000 in your browser.**
+
+Next time, you only need to start Docker Desktop, then run `docker compose up -d`, activate the virtual environment, and `flask --app app run --debug`. To stop the database, run `docker compose down` (your data is kept in the `pgdata` volume).
 
 ## Things to know
 
 - **Run it from `my-app`.** If you see `Error: Could not import 'app'`, you are in the wrong folder. `cd my-app` and try again.
-- **Tickets reset when the server restarts.** Tickets are kept in memory for now, so saving `app.py` (which restarts the server in debug mode) brings back the four sample tickets. A ticket page you had open will then show "Not Found". Get a new ticket from `/join`. Tickets move to a database in Week 4.
+- **The database must be running.** If the app fails with `connection refused` or `could not connect to server`, Docker Desktop is closed or the container is stopped. Start Docker Desktop and run `docker compose up -d`.
+- **`KeyError: 'DATABASE_URL'` means `.env` is missing.** Copy `.env.example` to `.env` (step 2).
 - **Debug mode is for development only.** Do not use `--debug` on a public server.
 
 ## Project structure
