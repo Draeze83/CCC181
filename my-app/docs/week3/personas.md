@@ -20,8 +20,8 @@ Aira arrives on campus to request an academic document before her next class. Th
 
 | Task | Screen | Requirement ID |
 | --- | --- | --- |
-| Find the correct active service and read its instructions | Services / Join | FR-01 |
-| Get a queue ticket for the selected service | Join | FR-02 |
+| Find the correct active service and read its instructions | Services / Join | FR-12 |
+| Get a queue ticket for the selected service | Join | FR-01 |
 | Check ticket status, queue position, and last-updated time | My ticket | FR-03 |
 
 ### What this means for my interface
@@ -53,9 +53,9 @@ At the start of a busy service period, Ramon opens Qonnect on the office compute
 
 | Task | Screen | Requirement ID |
 | --- | --- | --- |
-| Sign in before accessing queue controls | Staff login | FR-04 |
-| Call the earliest eligible waiting ticket for the selected service | Staff queue | FR-05 |
-| Update a ticket through a valid status change | Queue controls | FR-05 |
+| Sign in before accessing queue controls | Staff login | FR-10 |
+| Call the earliest eligible waiting ticket for the selected service | Staff queue | FR-08 |
+| Update a ticket through a valid status change | Queue controls | FR-09 |
 
 ### What this means for my interface
 

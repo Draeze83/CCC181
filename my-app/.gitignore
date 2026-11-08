@@ -1,3 +1,6 @@
+#.env
+.env
+
 # Virtual environment (rebuild it with: pip install -r requirements.txt)
 .venv/
 venv/
@@ -14,3 +17,9 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local Claude Code agent setup (mattpocock-skills config)
+.claude/
+
+# Local issue tracker files (specs, tickets, wayfinder maps)
+.scratch/
